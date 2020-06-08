@@ -6,8 +6,8 @@ env:
     - BLENDER_CACHE=$HOME/.cache/blender
     - BL_ADDON-Stop_motion_OBJ
   matrix:
-    - BLENDER_VERSION="2.80"
-    - BLENDER_VERSION="2.81a"
+    #- BLENDER_VERSION="2.80"
+    #- BLENDER_VERSION="2.81a"
     - BLENDER_VERSION="2.82a"
     - BLENDER_VERSION="2.83"
 language: python
@@ -37,6 +37,10 @@ install:
 
 script:
   - pytest
+  # https://www.geeksforgeeks.org/awk-command-unixlinux-examples/
+  - export TRAVIS_TAG=`cat version.py | grep currentScriptVersion | head -1 | awk -F= '{ print $2 }' | sed 's/[\",()]//g' | awk '{printf "v%s.%s.%s", $1, $2, $3; if(NF >= 4) print "." $4}'`
+  - git tag $TRAVIS_TAG -a -m "Generated tag from TravisCI for build $TRAVIS_BUILD_NUMBER"
+  - git push origin --tags
 
 # TODO: pr test: make sure GIT_TAG doesn't already exist
 # if [ "$(git tag -l $VERSION_TAG)" != "" ]; then
@@ -45,10 +49,6 @@ script:
 #fi
 
 before_deploy:
-  # https://www.geeksforgeeks.org/awk-command-unixlinux-examples/
-  - export TRAVIS_TAG=`cat version.py | grep currentScriptVersion | head -1 | awk -F= '{ print $2 }' | sed 's/[\",()]//g' | awk '{printf "v%s.%s.%s", $1, $2, $3; if(NF >= 4) print "." $4}'`
-  - git tag $TRAVIS_TAG -a -m "Generated tag from TravisCI for build $TRAVIS_BUILD_NUMBER"
-  - git push origin --tags
   - mkdir Stop-motion-OBJ
   - cp *.py README.md LICENSE Stop-motion-OBJ
   - zip Stop-motion-OBJ-$TRAVIS_TAG.zip Stop-motion-OBJ
